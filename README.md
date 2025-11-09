@@ -14,5 +14,12 @@ This Express + TypeScript backend powers a simple product catalogue API. It inge
 - **Safety Defaults** – Helmet sets security headers, CORS is restricted through a configurable allowlist, and a shared error handler keeps responses consistent while logging issues clearly.
 - **Deployment Ready** – The included Dockerfile installs dependencies, builds the TypeScript output, and starts the compiled app, making container deployments straightforward.
 
+## Deploying to Render
+1. Commit the project with the included `render.yaml`.
+2. In Render, create a new Web Service from the repository.
+3. Render automatically reads `render.yaml`, so the build command will run `npm run render-build` (installs dependencies and compiles TypeScript) and the start command will execute `npm start`.
+4. Provide required environment variables in the Render dashboard if you override defaults (`MOCK_API_BASE_URL`, `CORS_ORIGIN`, etc.).
+5. Trigger a deploy—Render generates `dist/` during the build step, so `node dist/server.js` runs without module-not-found errors.
+
 
 # DFW-TASK-BACKEND
