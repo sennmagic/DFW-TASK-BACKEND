@@ -1,9 +1,10 @@
 services:
   - type: web
-    name: dfw-task-backend
+    name: backend-service
     env: node
-    plan: free
-    buildCommand: npm install --include=dev && npm run build
+    rootDir: backend
+    buildCommand: npm run build
     startCommand: npm start
-    autoDeploy: true
-
+    envVars:
+      - key: NODE_ENV
+        value: production
