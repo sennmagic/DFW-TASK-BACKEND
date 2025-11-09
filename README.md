@@ -1,25 +1,92 @@
 # Backend Optimizations
 
-This Express + TypeScript backend powers a simple product catalogue API. It ingests data from an external mock service, applies lightweight filtering and pagination, and returns responses that stay fast even under repeated traffic thanks to caching and tuned middleware.
+TypeScript + Express service that fronts a product catalogue API. It hydrates data from a mock upstream, applies filtering and pagination, and responds quickly thanks to in-memory caching and production-ready middleware defaults.
 
-## Project Overview
-- `/api/products` exposes the core endpoint. It accepts `search`, `page`, and `limit` query parameters, filters product records by name or category, and returns paginated results.
-- `src/controllers/productController.ts` contains the fetch-and-filter logic and caches each unique query for five minutes.
-- `src/app.ts` wires up the Express instance with compression, CORS, Helmet, JSON parsing, URL-encoded parsing, and Morgan logging before mounting routes and the centralized error handler.
-- `src/config/env.ts` loads environment variables via `dotenv` and validates them with Zod so the app only boots with safe configuration.
+## Overview
+- Exposes `GET /api/products` for catalogue queries with `search`, `page`, and `limit` parameters.
+- Applies in-memory caching per unique query to minimise calls to the upstream mock API.
+- Centralises configuration, routing, and error handling to keep the codebase modular and easy to extend.
 
-## How It’s Built
-- **Language & Framework** – TypeScript on Node 18 with Express 5. TypeScript is compiled to `dist/` through `tsc`, and development uses `ts-node-dev` for hot reloads.
-- **Performance Tuning** – Compression shrinks payloads, NodeCache prevents redundant upstream calls, and precise query handling avoids unnecessary work.
-- **Safety Defaults** – Helmet sets security headers, CORS is restricted through a configurable allowlist, and a shared error handler keeps responses consistent while logging issues clearly.
-- **Deployment Ready** – The included Dockerfile installs dependencies, builds the TypeScript output, and starts the compiled app, making container deployments straightforward.
+## Tech Stack
+- Node.js 22 + Express 5
+- TypeScript 5 with strict compiler settings
+- Axios for outbound HTTP calls
+- NodeCache for short-lived response caching
+- Helmet, CORS, and compression middleware for production readiness
 
-## Deploying to Render
-1. Commit the project with the included `render.yaml`.
-2. In Render, create a new Web Service from the repository.
-3. Render automatically reads `render.yaml`, so the build command will run `npm run render-build` (installs dependencies and compiles TypeScript) and the start command will execute `npm start`.
-4. Provide required environment variables in the Render dashboard if you override defaults (`MOCK_API_BASE_URL`, `CORS_ORIGIN`, etc.).
-5. Trigger a deploy—Render generates `dist/` during the build step, so `node dist/server.js` runs without module-not-found errors.
+## Setup
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. (Optional) Create a `.env` file to override defaults. Available variables are listed in `src/config/env.ts`.
+3. Start the development server with hot reload:
+   ```bash
+   npm run dev
+   ```
+4. Build the TypeScript output:
+   ```bash
+   npm run build
+   ```
+5. Run the compiled server locally:
+   ```bash
+   npm start
+   ```
 
+## Available Scripts
+- `npm run dev` – Run the server with `ts-node-dev` for hot reloading.
+- `npm run build` – Compile TypeScript into the `dist/` directory.
+- `npm start` – Build (via `prestart`) and launch the compiled server.
+- `npm run lint` – Execute ESLint across the project.
+- `npm run test` / `npm run test:watch` – Run the Vitest suite.
 
-# DFW-TASK-BACKEND
+## Folder Structure
+```
+backend/
+├─ src/
+│  ├─ app.ts
+│  ├─ server.ts
+│  ├─ config/
+│  │  └─ env.ts
+│  ├─ controllers/
+│  │  └─ productController.ts
+│  ├─ middleware/
+│  │  └─ errorHandler.ts
+│  └─ routes/
+│     └─ productRoutes.ts
+├─ dist/            # Generated on build (not committed)
+├─ DOCS/            # Project documentation
+│  ├─ Architecture.md
+│  └─ Endpoints.md
+├─ package.json
+├─ tsconfig.json
+└─ render.yaml
+```
+
+## Features
+- **Express app factory**: `createApp()` wires middleware, routes, and error handling for easy testing and reuse.
+- **Config validation**: Environment variables are parsed with Zod to prevent misconfiguration at startup.
+- **Product search**: Flexible filtering by product name or category with pagination helpers.
+- **Caching**: NodeCache stores responses for five minutes per unique query.
+- **Central error handler**: Normalises error responses and logs noisy server errors once.
+
+## Deployment
+### Render
+1. Ensure `render.yaml` is committed. Render will use the defined build (`npm install --include=dev && npm run build`) and start (`npm start`) commands.
+2. Create a Web Service on Render pointing at the repository.
+3. Add environment variables in the Render dashboard if you need to override defaults (`MOCK_API_BASE_URL`, `CORS_ORIGIN`, `PORT`).
+4. Trigger a deploy. The build stage compiles TypeScript before the service boots, so `node dist/server.js` runs with the latest build artifacts.
+
+### Docker
+1. Build the image:
+   ```bash
+   docker build -t backend-optimizations .
+   ```
+2. Run the container:
+   ```bash
+   docker run --env-file .env -p 4000:4000 backend-optimizations
+   ```
+
+## Documentation
+- `DOCS/Architecture.md` – High-level design decisions and scaling guidance.
+- `DOCS/Endpoints.md` – Detailed API contract for available routes.
